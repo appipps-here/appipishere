@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>!!! SECURITY ALERT !!!</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+  :root{
+    --bg:#070403;
+    --red:#ff2b2b;
+    --muted:rgba(255,255,255,0.75);
+    --dark:#020202;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#000 0%,#110b0b 100%);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;color:#fff}
+  .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:20px}
+  .card{width:100%;max-width:760px;padding:28px;border-radius:12px;background:linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.6));box-shadow:0 20px 60px rgba(0,0,0,0.8);text-align:center;position:relative;overflow:hidden}
+  .bg-blink{position:absolute;inset:-20%;background:conic-gradient(from 180deg at 50% 50%, rgba(255,0,0,0.06), rgba(255,0,0,0.12));animation:pan 3s linear infinite;mix-blend-mode:screen;pointer-events:none}
+  @keyframes pan{0%{transform:rotate(0deg)}50%{transform:rotate(3deg)}100%{transform:rotate(0deg)}}
+  .title{font-size:20px;font-weight:900;color:var(--red);letter-spacing:1px;margin-bottom:6px}
+  .big{font-size:22px;font-weight:700;margin:8px 0;line-height:1.05}
+  .muted{color:var(--muted);font-size:14px;margin-top:10px}
+  .glitch{
+    position:relative;
+    display:inline-block;
+    font-weight:900;
+    color:#fff;
+    text-transform:uppercase;
+  }
+  .glitch::before,.glitch::after{
+    content:attr(data-text);
+    position:absolute;left:0;top:0;
+    width:100%;height:100%;
+    clip-path:inset(0 0 0 0);
+    opacity:.85;
+  }
+  .glitch::before{left:2px;text-shadow:-2px 0 var(--red);transform:translateX(0);}
+  .glitch::after{left:-2px;text-shadow:2px 0 #00e5ff;transform:translateX(0);}
+  .flicker{animation:flicker 1.4s infinite}
+  @keyframes flicker{0%{opacity:1}20%{opacity:.2}40%{opacity:1}60%{opacity:.4}80%{opacity:1}100%{opacity:1}}
+  .count{font-size:56px;font-weight:900;margin:14px 0;letter-spacing:3px}
+  .sub{font-size:15px;margin:10px 0;color:var(--muted)}
+  .progress{height:10px;background:rgba(255,255,255,0.08);border-radius:999px;overflow:hidden;margin:18px 0}
+  .bar{height:100%;width:0%;background:linear-gradient(90deg,var(--red),#ff6a6a);transition:width 350ms linear}
+  .log{background:rgba(0,0,0,0.28);padding:12px;border-radius:8px;text-align:left;font-family:monospace;font-size:13px;color:#ffdede;margin-top:12px}
+  .btn{display:inline-block;margin-top:14px;padding:8px 14px;border-radius:8px;background:rgba(255,255,255,0.06);cursor:pointer;border:1px solid rgba(255,255,255,0.04)}
+  .small{font-size:12px;color:rgba(255,255,255,0.6);margin-top:8px}
+  .shake{animation:shake 0.8s ease-in-out 0s 2}
+  @keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-6px)}100%{transform:translateX(0)}}
+  /* fullscreen flash */
+  .flash{position:absolute;inset:0;background:var(--red);opacity:0;pointer-events:none;animation:flashit 1.6s linear forwards}
+  @keyframes flashit{0%{opacity:0}10%{opacity:.9}30%{opacity:0}100%{opacity:0}}
+  .hidden{display:none}
+  footer{font-size:12px;color:rgba(255,255,255,0.45);margin-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card" id="card">
+    <div class="bg-blink"></div>
+    <div class="title">!!! SECURITY BREACH !!!</div>
+    <div id="mainMsg" class="big"><span class="glitch" data-text="FRONTCAM ACTIVATED">FRONTCAM ACTIVATED</span></div>
+    <div id="subMsg" class="sub">Face match: <strong id="idBadge">PIP_0410</strong> — confidence 98.7%</div>
+
+    <div class="count" id="countdown">05</div>
+
+    <div class="progress" aria-hidden="true"><div class="bar" id="bar"></div></div>
+
+    <div class="log" id="logArea">
+      &gt; SYSTEM BOOT... OK<br>
+      &gt; SENSOR: FRONT CAM ONLINE<br>
+      &gt; FACE ID: <strong>Ahmad Rafif</strong> (98.7%)<br>
+      &gt; ACTION: Preparing evidence packet...
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:center">
+      <div class="btn" id="closeBtn">Close</div>
+      <div class="btn" id="viewBtn">View Evidence</div>
+    </div>
+
+    <div class="small">Tap lagi to escalate — this device records interactions.</div>
+    <footer id="footerNote">Device: <span id="deviceInfo">unknown</span></footer>
+  </div>
+</div>
+
+<script>
+(function(){
+  const bar = document.getElementById('bar');
+  const countdown = document.getElementById('countdown');
+  const log = document.getElementById('logArea');
+  const mainMsg = document.getElementById('mainMsg');
+  const subMsg = document.getElementById('subMsg');
+  const closeBtn = document.getElementById('closeBtn');
+  const viewBtn = document.getElementById('viewBtn');
+  const device = navigator.userAgent || 'unknown';
+  document.getElementById('deviceInfo').textContent = device.split(')')[0];
+
+  // visitor count localStorage
+  let v = parseInt(localStorage.getItem('panic_visits')||"0");
+  v++; localStorage.setItem('panic_visits', v);
+
+  // if repeat visitor -> skip countdown
+  let skipIntro = (v > 1);
+
+  let t = skipIntro ? 0 : 5;
+  countdown.textContent = String(t).padStart(2,'0');
+  let progress = 0;
+  function advance(){
+    if(t>0){
+      t--;
+      countdown.textContent = String(t).padStart(2,'0');
+      progress += 20;
+      bar.style.width = progress + '%';
+      log.innerHTML += '<br>&gt; UPLOADING EVIDENCE... ' + progress + '%';
+      setTimeout(advance, 800);
+    } else {
+      // escalate
+      bar.style.width = '100%';
+      log.innerHTML += '<br>&gt; UPLOAD COMPLETE. NOTIFYING OWNER...';
+      flashAndPanic();
+    }
+  }
+
+  function flashAndPanic(){
+    // visual escalate
+    mainMsg.classList.add('flicker');
+    document.body.style.background = 'linear-gradient(180deg,#200 0%, #100 100%)';
+    subMsg.innerHTML = 'OWNER NOTIFIED — ACTION REQUIRED';
+    // add big red flash
+    const flash = document.createElement('div');
+    flash.className = 'flash';
+    document.getElementById('card').appendChild(flash);
+    // shake
+    document.getElementById('card').classList.add('shake');
+    // add extra log lines
+    setTimeout(()=> {
+      log.innerHTML += '<br>&gt; ADMIN ALERT SENT';
+      log.innerHTML += '<br>&gt; SCREENSHOT CAPTURE (simulated)';
+    }, 600);
+    // change title to alarm
+    setTimeout(()=> document.title = '!!! RECORDED — OWNER ALERTED !!!', 900);
+    // after escalate, make viewBtn more angry
+    viewBtn.textContent = 'See Recorded Evidence';
+  }
+
+  // Start sequence
+  if(skipIntro){
+    // direct panic
+    bar.style.width='100%';
+    log.innerHTML += '<br>&gt; REPEAT ACCESS DETECTED — OWNER ALREADY NOTIFIED';
+    flashAndPanic();
+  } else {
+    setTimeout(advance, 700);
+  }
+
+  // Buttons behavior (prank-only)
+  closeBtn.addEventListener('click', ()=> {
+    // gentle close: minimize panic but still show note
+    mainMsg.innerHTML = '<span style="color:#ffdede;font-weight:900">ACCESS RECORDED</span>';
+    subMsg.textContent = 'Owner has been notified. Close this page now.';
+    log.innerHTML += '<br>&gt; USER CLOSED PAGE — ACTION STILL RECORDED';
+  });
+
+  viewBtn.addEventListener('click', ()=> {
+    // show "evidence" modal (simulated)
+    log.innerHTML += '<br>&gt; LOADING RECORDED EVIDENCE...';
+    // fake thumbnails
+    setTimeout(()=> {
+      log.innerHTML += '<br><br>&gt; [IMG_001_FRONTCAM.jpg] - (simulated)<br>&gt; [IMG_002_SCREEN.jpg] - (simulated)';
+      mainMsg.innerHTML = '<span style="color:var(--red);font-weight:900">EVIDENCE QUEUED</span>';
+      subMsg.textContent = 'Owner will review this access attempt.';
+    }, 900);
+  });
+
+  // on page hide/visibility change, escalate message (extra panic)
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden){
+      log.innerHTML += '<br>&gt; PAGE MINIMIZED — AUTOMATIC RESUME ON NEXT FOCUS';
+    } else {
+      log.innerHTML += '<br>&gt; PAGE FOCUS RETURNED';
+    }
+  });
+
+  // small keyboard panic trigger (only if keyboard present)
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'p' || e.key === 'P'){ // secret panic key
+      log.innerHTML += '<br>&gt; MANUAL ESCALATION TRIGGERED';
+      flashAndPanic();
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
